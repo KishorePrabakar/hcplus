@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  STUDENT
+  WARDEN
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum ComplaintCategory {
+  ELECTRICAL
+  PLUMBING
+  INTERNET
+  MESS
+  CLEANLINESS
+  FURNITURE
+  SECURITY
+  OTHER
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  REJECTED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(STUDENT)
+  status       UserStatus @default(PENDING)
+  hostel       String?
+  roomNumber   String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  refreshTokens  RefreshToken[]
+  complaints     Complaint[]          @relation("ComplaintCreator")
+  assignedTo     Complaint[]          @relation("ComplaintAssignee")
+  comments       Comment[]
+  statusEvents   StatusEvent[]
+  invites        Invite[]             @relation("InviteCreator")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Complaint {
+  id             String            @id @default(cuid())
+  code           String            @unique
+  title          String
+  description    String
+  category       ComplaintCategory
+  priority       Priority          @default(MEDIUM)
+  status         ComplaintStatus   @default(OPEN)
+  createdById    String
+  assignedToId   String?
+  resolutionNote String?
+  resolvedAt     DateTime?
+  closedAt       DateTime?
+  reopenedCount  Int               @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  createdBy    User          @relation("ComplaintCreator", fields: [createdById], references: [id])
+  assignedTo   User?         @relation("ComplaintAssignee", fields: [assignedToId], references: [id])
+  comments     Comment[]
+  statusEvents StatusEvent[]
+
+  @@index([status, priority])
+  @@index([createdById])
+  @@index([assignedToId])
+  @@index([category])
+}
+
+model Invite {
+  id          String    @id @default(cuid())
+  email       String
+  role        Role      @default(STUDENT)
+  hostel      String?
+  roomNumber  String?
+  tokenHash   String    @unique
+  createdById String
+  acceptedAt  DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  createdBy User @relation("InviteCreator", fields: [createdById], references: [id])
+
+  @@index([email])
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  complaintId String
+  authorId    String
+  body        String
+  createdAt   DateTime @default(now())
+
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id])
+
+  @@index([complaintId])
+}
+
+model StatusEvent {
+  id          String          @id @default(cuid())
+  complaintId String
+  actorId     String
+  fromStatus  ComplaintStatus?
+  toStatus    ComplaintStatus
+  note        String?
+  createdAt   DateTime        @default(now())
+
+  complaint Complaint @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  actor     User      @relation(fields: [actorId], references: [id])
+
+  @@index([complaintId])
+}
