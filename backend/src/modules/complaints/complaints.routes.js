@@ -68,7 +68,7 @@ router.post('/', requireActive, validate(createComplaintSchema), async (req, res
 
 router.get('/', validate(listQuerySchema, 'query'), async (req, res, next) => {
   try {
-    const { status, category, priority, q, page, pageSize } = req.query;
+    const { status, category, priority, q, page, pageSize } = req.data.query;
     const where = {};
     if (!isStaff(req.user)) where.createdById = req.user.id;
     if (status) where.status = status;
@@ -209,7 +209,7 @@ router.patch(
       }
 
       const updated = await db.$transaction(async (tx) => {
-        const c = await tx.complaint.update({ where: { id: complaint.id }, data });
+        const c = await tx.complaint.update({ where: { id: complaint.id }, data: { ...data, status: toStatus } });
         await recordEvent(tx, c.id, req.user.id, complaint.status, toStatus, note ?? null);
         return c;
       });

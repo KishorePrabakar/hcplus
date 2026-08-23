@@ -6,8 +6,8 @@ const config = require('./config');
 const { notFound, errorHandler } = require('./middlewares/error');
 
 const authRoutes = require('./modules/auth/auth.routes');
-const usersRoutes = require('./modules/users/users.routes');
 const invitesRoutes = require('./modules/users/invites.routes');
+const usersRoutes = require('./modules/users/users.routes');
 const complaintsRoutes = require('./modules/complaints/complaints.routes');
 const statsRoutes = require('./modules/stats/stats.routes');
 
@@ -27,8 +27,10 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api', usersRoutes);
+// invites must mount before the users router, whose requireAuth guard
+// would otherwise swallow the public /api/invites/:token endpoints
 app.use('/api', invitesRoutes);
+app.use('/api', usersRoutes);
 app.use('/api/complaints', complaintsRoutes);
 app.use('/api/stats', statsRoutes);
 

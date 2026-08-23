@@ -107,6 +107,7 @@ model Complaint {
 
 model Invite {
   id          String    @id @default(cuid())
+  name        String
   email       String
   role        Role      @default(STUDENT)
   hostel      String?
