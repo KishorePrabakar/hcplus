@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "web": {
+      "root": "frontend",
+      "framework": "vite"
+    },
+    "api": {
+      "root": "backend",
+      "framework": "express",
+      "entrypoint": "src/app.js",
+      "installCommand": "npm install --no-audit --no-fund && npx prisma generate"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": { "service": "api" } },
+    { "source": "/health", "destination": { "service": "api" } },
+    { "source": "/(.*)", "destination": { "service": "web" } }
+  ]
+}
