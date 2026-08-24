@@ -9,7 +9,7 @@
       "root": "backend",
       "framework": "express",
       "entrypoint": "src/app.js",
-      "installCommand": "npm install --no-audit --no-fund && npx prisma generate"
+      "installCommand": "cd backend && npm install --no-audit --no-fund && npx prisma generate"
     }
   },
   "rewrites": [
