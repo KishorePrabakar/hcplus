@@ -1,2 +1,5 @@
 .vercel
 .env*
+
+.vercel-env*
+skills-lock.json
